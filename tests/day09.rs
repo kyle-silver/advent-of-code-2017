@@ -52,6 +52,13 @@ impl Element<'_> {
             }
         }
     }
+
+    fn score(&self, depth: u32) -> u32 {
+        match self {
+            Element::Group(g) => g.score(depth),
+            Element::Garbage(g) => 0
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -81,18 +88,42 @@ impl Group<'_> {
         let num_commas = if self.0.len() == 0 { 0 } else { self.0.len() - 1 };
         self.0.iter().map(Element::size_chars).sum::<usize>() + num_commas + 2
     }
+
+    fn score(&self, depth: u32) -> u32 {
+        depth + self.0.iter().map(|e| e.score(depth + 1)).sum::<u32>()
+    }
 }
 
 #[test]
-fn string_slices() {
+fn part1() {
     let raw = include_str!("res/09.txt");
     let input: Vec<_> = raw.chars().collect();
     let group = Group::parse(&input, 1);
-    println!("{:#?}", group);
+    println!("Day 9, part 1: {}", group.score(1));
 }
 
 #[test]
 fn test_garbage() {
     let input = "{{<>,{<!!!!!>>}},{}}".chars().collect::<Vec<char>>();
     println!("{:?}", Group::parse(&input, 1));
+}
+
+#[test]
+fn test_score() {
+    let input = "{}".chars().collect::<Vec<char>>();
+    assert_eq!(1, Group::parse(&input, 1).score(1));
+    let input = "{{{}}}".chars().collect::<Vec<char>>();
+    assert_eq!(6, Group::parse(&input, 1).score(1));
+    let input = "{{},{}}".chars().collect::<Vec<char>>();
+    assert_eq!(5, Group::parse(&input, 1).score(1));
+    let input = "{{{},{},{{}}}}".chars().collect::<Vec<char>>();
+    assert_eq!(16, Group::parse(&input, 1).score(1));
+    let input = "{<a>,<a>,<a>,<a>}".chars().collect::<Vec<char>>();
+    assert_eq!(1, Group::parse(&input, 1).score(1));
+    let input = "{{<ab>},{<ab>},{<ab>},{<ab>}}".chars().collect::<Vec<char>>();
+    assert_eq!(9, Group::parse(&input, 1).score(1));
+    let input = "{{<!!>},{<!!>},{<!!>},{<!!>}}".chars().collect::<Vec<char>>();
+    assert_eq!(9, Group::parse(&input, 1).score(1));
+    let input = "{{<a!>},{<a!>},{<a!>},{<ab>}}".chars().collect::<Vec<char>>();
+    assert_eq!(3, Group::parse(&input, 1).score(1));
 }
