@@ -144,8 +144,26 @@ fn part1() {
     let program: Vec<Instr> = raw.map(Instr::parse).collect();
     let mut regs = Regs::new();
     for instr in &program {
-        println!("{:?}", instr);
         regs.exec(instr);
     }
-    println!("{:?}", regs);
+    let ans = regs.regs.values().max().unwrap();
+    println!("Day 8, part 1: {}", ans);
+    assert_eq!(4066, *ans);
+}
+
+#[test]
+fn part2() {
+    let raw = include_str!("res/08.txt").lines();
+    let program: Vec<Instr> = raw.map(Instr::parse).collect();
+    let mut regs = Regs::new();
+    let mut abs_max = 0;
+    for instr in &program {
+        regs.exec(instr);
+        let cur_max = *regs.regs.values().max().unwrap_or(&0);
+        if cur_max > abs_max {
+            abs_max = cur_max;
+        }
+    }
+    println!("Day 8, part 2: {}", abs_max);
+    assert_eq!(4829, abs_max);
 }
