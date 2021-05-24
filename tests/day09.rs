@@ -72,7 +72,7 @@ impl Element<'_> {
     fn score(&self, depth: u32) -> u32 {
         match self {
             Element::Group(g) => g.score(depth),
-            Element::Garbage(g) => 0
+            Element::Garbage(_) => 0
         }
     }
 
