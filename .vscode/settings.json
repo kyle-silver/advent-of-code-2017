@@ -5,6 +5,7 @@
         "eval",
         "maxindex",
         "minmax",
-        "nums"
+        "nums",
+        "rcrefcell"
     ]
 }
