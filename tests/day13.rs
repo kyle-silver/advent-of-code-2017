@@ -8,7 +8,6 @@ enum ScanDirection {
     Back,
 }
 
-
 #[derive(Debug)]
 struct Scanner {
     range: u32,
@@ -18,7 +17,11 @@ struct Scanner {
 
 impl Scanner {
     fn new(range: u32) -> Scanner {
-        Scanner { range, current_position: 0, scan_direction: ScanDirection::Out }
+        Scanner {
+            range,
+            current_position: 0,
+            scan_direction: ScanDirection::Out,
+        }
     }
 
     fn step(&mut self) {
@@ -46,10 +49,13 @@ struct Firewall(HashMap<u32, Scanner>);
 
 impl Firewall {
     fn parse(input: &str) -> Firewall {
-        let state = input.lines().map(|line| {
-            let (pos, depth) = line.split_once(": ").unwrap();
-            (pos.parse().unwrap(), Scanner::new(depth.parse().unwrap()))
-        }).collect();
+        let state = input
+            .lines()
+            .map(|line| {
+                let (pos, depth) = line.split_once(": ").unwrap();
+                (pos.parse().unwrap(), Scanner::new(depth.parse().unwrap()))
+            })
+            .collect();
         Firewall(state)
     }
 
@@ -67,5 +73,4 @@ impl Firewall {
 }
 
 #[test]
-fn part1() {
-}
+fn part1() {}

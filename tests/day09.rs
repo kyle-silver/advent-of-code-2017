@@ -15,13 +15,16 @@ impl Garbage<'_> {
                 escaped = false;
                 continue;
             } else if *c == '>' {
-                println!("garbage hunk: \"{}\"", input[..=index].iter().collect::<String>());
+                println!(
+                    "garbage hunk: \"{}\"",
+                    input[..=index].iter().collect::<String>()
+                );
                 return Garbage(&input[..=index]);
             }
         }
         panic!("malformed garbage chunk");
     }
-    
+
     fn size_chars(&self) -> usize {
         self.0.len()
     }
@@ -47,7 +50,7 @@ impl Garbage<'_> {
 #[derive(Debug)]
 enum Element<'a> {
     Group(Group<'a>),
-    Garbage(Garbage<'a>)
+    Garbage(Garbage<'a>),
 }
 
 impl Element<'_> {
@@ -63,7 +66,11 @@ impl Element<'_> {
             '{' => Element::Group(Group::parse(input, depth + 1)),
             '<' => Element::Garbage(Garbage::parse(input)),
             other => {
-                println!("Panicking on char: '{}' for slice \"{}...\"", other, input.iter().take(10).collect::<String>());
+                println!(
+                    "Panicking on char: '{}' for slice \"{}...\"",
+                    other,
+                    input.iter().take(10).collect::<String>()
+                );
                 panic!("Bad input for element parsing")
             }
         }
@@ -72,7 +79,7 @@ impl Element<'_> {
     fn score(&self, depth: u32) -> u32 {
         match self {
             Element::Group(g) => g.score(depth),
-            Element::Garbage(_) => 0
+            Element::Garbage(_) => 0,
         }
     }
 
@@ -90,7 +97,10 @@ struct Group<'a>(Vec<Element<'a>>);
 impl Group<'_> {
     /// assumes the first character is always '{'
     fn parse(input: &[char], depth: usize) -> Group<'_> {
-        println!("group input: \"{}...\"", input.iter().take(10).collect::<String>());
+        println!(
+            "group input: \"{}...\"",
+            input.iter().take(10).collect::<String>()
+        );
         let mut elements: Vec<Element> = Vec::new();
         let mut i = 1;
         while i < input.len() {
@@ -108,7 +118,11 @@ impl Group<'_> {
     }
 
     fn size_chars(&self) -> usize {
-        let num_commas = if self.0.len() == 0 { 0 } else { self.0.len() - 1 };
+        let num_commas = if self.0.len() == 0 {
+            0
+        } else {
+            self.0.len() - 1
+        };
         self.0.iter().map(Element::size_chars).sum::<usize>() + num_commas + 2
     }
 
@@ -148,11 +162,17 @@ fn test_score() {
     assert_eq!(16, Group::parse(&input, 1).score(1));
     let input = "{<a>,<a>,<a>,<a>}".chars().collect::<Vec<char>>();
     assert_eq!(1, Group::parse(&input, 1).score(1));
-    let input = "{{<ab>},{<ab>},{<ab>},{<ab>}}".chars().collect::<Vec<char>>();
+    let input = "{{<ab>},{<ab>},{<ab>},{<ab>}}"
+        .chars()
+        .collect::<Vec<char>>();
     assert_eq!(9, Group::parse(&input, 1).score(1));
-    let input = "{{<!!>},{<!!>},{<!!>},{<!!>}}".chars().collect::<Vec<char>>();
+    let input = "{{<!!>},{<!!>},{<!!>},{<!!>}}"
+        .chars()
+        .collect::<Vec<char>>();
     assert_eq!(9, Group::parse(&input, 1).score(1));
-    let input = "{{<a!>},{<a!>},{<a!>},{<ab>}}".chars().collect::<Vec<char>>();
+    let input = "{{<a!>},{<a!>},{<a!>},{<ab>}}"
+        .chars()
+        .collect::<Vec<char>>();
     assert_eq!(3, Group::parse(&input, 1).score(1));
 }
 

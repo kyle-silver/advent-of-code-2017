@@ -26,7 +26,7 @@ impl Cell {
 
 #[derive(Debug, Hash, Clone, PartialEq, Eq)]
 struct Pattern<const N: usize> {
-    grid: [[Cell; N]; N]
+    grid: [[Cell; N]; N],
 }
 
 impl<const N: usize> Pattern<N> {
@@ -61,7 +61,7 @@ impl<const N: usize> Pattern<N> {
 
 #[derive(Debug)]
 struct Replication<const N: usize, const M: usize> {
-    rules: HashMap<Pattern<N>, Pattern<M>>
+    rules: HashMap<Pattern<N>, Pattern<M>>,
 }
 
 impl<const N: usize, const M: usize> Replication<N, M> {
@@ -91,11 +91,10 @@ impl<const N: usize, const M: usize> Replication<N, M> {
     }
 }
 
-
 #[derive(Debug)]
 struct Patterns {
-    small: Replication<2,3>,
-    big: Replication<3,4>,
+    small: Replication<2, 3>,
+    big: Replication<3, 4>,
 }
 
 impl Patterns {
@@ -110,26 +109,29 @@ impl Patterns {
 
 #[derive(Debug)]
 struct Grid {
-    grid: Vec<Vec<Cell>>
+    grid: Vec<Vec<Cell>>,
 }
 
 impl Grid {
     fn grow(&self, patterns: &Patterns) -> Grid {
         if self.grid.len() % 2 == 0 {
             self.replicate(&patterns.small)
-        } else  {
+        } else {
             self.replicate(&patterns.big)
         }
     }
 
-    fn replicate<const N: usize, const M: usize>(&self, replication: &Replication<N,M>) -> Grid {
+    fn replicate<const N: usize, const M: usize>(&self, replication: &Replication<N, M>) -> Grid {
         let size = self.grid.len();
         let segments = size / N;
         let mut grid = vec![vec![Cell::Off; segments * M]; segments * M];
         for i in 0..segments {
-            for j in 0..segments{
+            for j in 0..segments {
                 let (ri, ci) = (i * N, j * N); // row index, col index
-                let segment: Vec<&[Cell]> = self.grid[ri..ri + N].iter().map(|s| &s[ci..ci+N]).collect();
+                let segment: Vec<&[Cell]> = self.grid[ri..ri + N]
+                    .iter()
+                    .map(|s| &s[ci..ci + N])
+                    .collect();
                 let pattern = replication.rule(&segment);
                 for r in 0..M {
                     for c in 0..M {
@@ -142,13 +144,12 @@ impl Grid {
     }
 
     fn on(&self) -> u32 {
-        self.grid.iter()
+        self.grid
+            .iter()
             .map(|row| row.iter().filter(|c| c.on()).count() as u32)
             .sum()
     }
 }
-
-
 
 #[test]
 fn part1() {

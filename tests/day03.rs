@@ -16,13 +16,13 @@ number of "rings" out it is.
 ring n (where n > 1) has side lengths 2n+1
 
 for a given k:
-    ring number 
+    ring number
         R := ceil(floor(sqrt(k-1))/2)
     ring start
         r := (2(R-1)+1)^2
     ring length
         l := (2R+1)^2 - (2(R-1)+1)^2
-    ring side lengths 
+    ring side lengths
         s := l / 4
     corners
         c1..c4 := r + (n*s)
@@ -44,7 +44,7 @@ for a given k:
             (x,y) := c4 - (c4-k, 0)
 */
 
-fn ring_number(k: u32) -> u32  {
+fn ring_number(k: u32) -> u32 {
     if k == 0 {
         return 0;
     }
@@ -54,7 +54,7 @@ fn ring_number(k: u32) -> u32  {
 }
 
 fn ring_start(ring_number: u32) -> u32 {
-    ((2 * (ring_number-1)) + 1).pow(2)
+    ((2 * (ring_number - 1)) + 1).pow(2)
 }
 
 fn spiral_coords(k: u32) -> (i32, i32) {
@@ -75,7 +75,7 @@ fn spiral_coords(k: u32) -> (i32, i32) {
     let ring_number = ring_number as i32;
     if k <= c1 {
         (ring_number, ring_number - c1 + k)
-    } else if k <=  c2 {
+    } else if k <= c2 {
         (-ring_number + c2 - k, ring_number)
     } else if k <= c3 {
         (-ring_number, -ring_number + c3 - k)
@@ -94,9 +94,14 @@ fn part1() {
 }
 
 const ADJACENCY_VECTORS: [(i32, i32); 8] = [
-    (-1,-1), (-1,0), (-1,1),
-    (0,-1), (0,1),
-    (1,-1), (1,0), (1,1)
+    (-1, -1),
+    (-1, 0),
+    (-1, 1),
+    (0, -1),
+    (0, 1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
 ];
 
 #[test]
@@ -107,7 +112,8 @@ fn part2() {
     let mut ans = 0;
     for i in 2.. {
         let next = spiral_coords(i) as (i32, i32);
-        let sum: i32 = ADJACENCY_VECTORS.iter()
+        let sum: i32 = ADJACENCY_VECTORS
+            .iter()
             .map(|(x, y)| (x + next.0, y + next.1))
             .filter_map(|pos| map.get(&pos))
             .sum();

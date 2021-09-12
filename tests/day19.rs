@@ -4,7 +4,11 @@ const INPUT: &str = include_str!("res/19.txt");
 
 #[derive(Debug, Clone)]
 enum Direction {
-    Up, Down, Left, Right, Halted,
+    Up,
+    Down,
+    Left,
+    Right,
+    Halted,
 }
 
 #[derive(Debug)]
@@ -17,22 +21,37 @@ struct State {
 
 impl State {
     fn new(world: Vec<Vec<char>>) -> State {
-        let x = world[0].iter().enumerate()
+        let x = world[0]
+            .iter()
+            .enumerate()
             .filter(|(_, c)| **c == '|')
             .next()
             .map(|(i, _)| i)
             .unwrap();
-        State { world, x, y: 0, dir: Direction::Down }
+        State {
+            world,
+            x,
+            y: 0,
+            dir: Direction::Down,
+        }
     }
 
     fn advance(&mut self, dir: Direction) {
         self.dir = dir;
         match self.dir {
-            Direction::Up => {self.y -= 1;},
-            Direction::Down => {self.y += 1;},
-            Direction::Left => {self.x -= 1;},
-            Direction::Right => {self.x += 1;},
-            Direction::Halted => {},
+            Direction::Up => {
+                self.y -= 1;
+            }
+            Direction::Down => {
+                self.y += 1;
+            }
+            Direction::Left => {
+                self.x -= 1;
+            }
+            Direction::Right => {
+                self.x += 1;
+            }
+            Direction::Halted => {}
         }
     }
 
@@ -40,25 +59,27 @@ impl State {
         match self.current() {
             '+' => {
                 let candidates: [(Option<&char>, Direction); 2] = match self.dir {
-                    Direction::Up | Direction::Down => {
-                        [(self.left(), Direction::Left), (self.right(), Direction::Right)]
-                    },
+                    Direction::Up | Direction::Down => [
+                        (self.left(), Direction::Left),
+                        (self.right(), Direction::Right),
+                    ],
                     Direction::Left | Direction::Right => {
                         [(self.up(), Direction::Up), (self.down(), Direction::Down)]
-                    },
+                    }
                     Direction::Halted => return None,
                 };
                 println!("Candidates: {:?}", candidates);
-                let next = candidates.iter()
+                let next = candidates
+                    .iter()
                     .filter(|(c, _)| c.map(|c| *c != ' ').unwrap_or(false))
                     .next()
                     .map(|(_, dir)| dir)
                     .unwrap_or(&Direction::Halted)
                     .clone();
                 Some(next)
-            },
+            }
             ' ' => None,
-            _ => Some(self.dir.clone())
+            _ => Some(self.dir.clone()),
         }
     }
 
@@ -89,12 +110,9 @@ impl State {
     }
 }
 
-
 #[test]
 fn part1() {
-    let world: Vec<Vec<char>> = INPUT.lines()
-        .map(|line| line.chars().collect())
-        .collect();
+    let world: Vec<Vec<char>> = INPUT.lines().map(|line| line.chars().collect()).collect();
     let mut stack: Vec<char> = Vec::new();
     let mut state = State::new(world);
     let mut steps = 0;

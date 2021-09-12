@@ -1,13 +1,24 @@
 use std::{collections::HashMap, convert::TryInto};
 
 fn twist<const N: usize>(pos: usize, length: usize, state: &mut [u8; N]) {
-    let to_swap: Vec<u8> = state.iter().cycle().skip(pos).take(length).cloned().collect();
+    let to_swap: Vec<u8> = state
+        .iter()
+        .cycle()
+        .skip(pos)
+        .take(length)
+        .cloned()
+        .collect();
     for (i, val) in to_swap.into_iter().rev().enumerate() {
         state[(pos + i) % N] = val
     }
 }
 
-fn knot_hash_round<const N: usize>(pos: &mut usize, skip: usize, state: &mut [u8; N], input: &[usize]) {
+fn knot_hash_round<const N: usize>(
+    pos: &mut usize,
+    skip: usize,
+    state: &mut [u8; N],
+    input: &[usize],
+) {
     for (base_skip, &length) in input.iter().enumerate() {
         twist(*pos, length, state);
         *pos = (*pos + length + base_skip + skip) % N;
@@ -28,10 +39,7 @@ fn knot_hash(input: &[usize]) -> u128 {
         knot_hash_round(&mut pos, skip, &mut state, input);
         skip += input.len();
     }
-    let bytes: Vec<_> = state.chunks(16)
-        .map(dense_hash)
-        .rev()
-        .collect();
+    let bytes: Vec<_> = state.chunks(16).map(dense_hash).rev().collect();
     let bytes: [u8; 16] = bytes.try_into().unwrap();
     u128::from_le_bytes(bytes)
 }
@@ -49,8 +57,14 @@ fn test() {
 fn part1() {
     let seed = "stpzcrnm";
     let extra = vec![17, 31, 73, 47, 23];
-    let hashes: u32 = (0..128).map(|i| format!("{}-{}", seed, i))
-        .map(|s| s.as_str().bytes().map(|b| b as usize).collect::<Vec<usize>>())
+    let hashes: u32 = (0..128)
+        .map(|i| format!("{}-{}", seed, i))
+        .map(|s| {
+            s.as_str()
+                .bytes()
+                .map(|b| b as usize)
+                .collect::<Vec<usize>>()
+        })
         .map(|mut input| {
             input.append(&mut extra.clone());
             input
@@ -76,15 +90,21 @@ fn bits_as_arr(input: u128) -> [bool; 128] {
 enum MapEntry {
     Empty,
     Unset,
-    Value(u32)
+    Value(u32),
 }
 
 #[test]
 fn part2() {
     let seed = "stpzcrnm";
     let extra = vec![17, 31, 73, 47, 23];
-    let data: Vec<u128> = (0..128).map(|i| format!("{}-{}", seed, i))
-        .map(|s| s.as_str().bytes().map(|b| b as usize).collect::<Vec<usize>>())
+    let data: Vec<u128> = (0..128)
+        .map(|i| format!("{}-{}", seed, i))
+        .map(|s| {
+            s.as_str()
+                .bytes()
+                .map(|b| b as usize)
+                .collect::<Vec<usize>>()
+        })
         .map(|mut input| {
             input.append(&mut extra.clone());
             input

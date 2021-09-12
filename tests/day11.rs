@@ -1,7 +1,12 @@
 // infinite thanks to https://www.redblobgames.com/grids/hexagons/
 #[derive(Debug)]
 enum HexDirection {
-    North, Northeast, Southeast, South, Southwest, Northwest,
+    North,
+    Northeast,
+    Southeast,
+    South,
+    Southwest,
+    Northwest,
 }
 
 impl HexDirection {
@@ -20,7 +25,7 @@ impl HexDirection {
 }
 
 #[derive(Debug)]
-struct Tile(i32,i32,i32);
+struct Tile(i32, i32, i32);
 
 impl Tile {
     fn step(&mut self, dir: HexDirection) {
@@ -60,10 +65,8 @@ impl Tile {
 #[test]
 fn part1() {
     let raw = include_str!("res/11.txt");
-    let input: Vec<_> = raw.split(',')
-        .map(HexDirection::parse)
-        .collect();
-    let mut pos = Tile(0,0,0);
+    let input: Vec<_> = raw.split(',').map(HexDirection::parse).collect();
+    let mut pos = Tile(0, 0, 0);
     for dir in input {
         pos.step(dir);
     }
@@ -75,10 +78,8 @@ fn part1() {
 #[test]
 fn part2() {
     let raw = include_str!("res/11.txt");
-    let input: Vec<_> = raw.split(',')
-        .map(HexDirection::parse)
-        .collect();
-    let mut pos = Tile(0,0,0);
+    let input: Vec<_> = raw.split(',').map(HexDirection::parse).collect();
+    let mut pos = Tile(0, 0, 0);
     let mut max_dist = 0;
     for dir in input {
         pos.step(dir);

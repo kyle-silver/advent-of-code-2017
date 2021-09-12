@@ -24,7 +24,7 @@ impl Particle {
 
     fn _parse_triple(triple: &str) -> [i64; 3] {
         let triple: Vec<_> = triple.chars().collect();
-        let triple = &triple[3..triple.len()-1];
+        let triple = &triple[3..triple.len() - 1];
         let mut res = [0, 0, 0];
         let mut start = 0;
         let mut index = 0;
@@ -62,9 +62,9 @@ impl Ord for &Particle {
         match abs_sum(&self.acc).cmp(&abs_sum(&other.acc)) {
             Ordering::Equal => match abs_sum(&self.vel).cmp(&abs_sum(&other.vel)) {
                 Ordering::Equal => abs_sum(&self.pos).cmp(&abs_sum(&other.pos)),
-                ordering => ordering
+                ordering => ordering,
             },
-            ordering => ordering
+            ordering => ordering,
         }
     }
 }
@@ -72,7 +72,6 @@ impl Ord for &Particle {
 fn abs_sum(p: &[i64]) -> i64 {
     p.iter().map(|x| x.abs()).sum()
 }
-
 
 #[test]
 fn part1() {

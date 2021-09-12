@@ -1,10 +1,16 @@
 #[test]
 fn part1() {
     let raw = include_str!("res/02.txt");
-    let input: Vec<Vec<u32>> = raw.lines()
-        .map(|line| line.split_ascii_whitespace().map(|t| t.parse().unwrap()).collect())
+    let input: Vec<Vec<u32>> = raw
+        .lines()
+        .map(|line| {
+            line.split_ascii_whitespace()
+                .map(|t| t.parse().unwrap())
+                .collect()
+        })
         .collect();
-    let ans: u32 = input.iter()
+    let ans: u32 = input
+        .iter()
         .map(|v| minmax(v))
         .map(|(min, max)| max - min)
         .sum();
@@ -22,16 +28,22 @@ fn minmax(line: &[u32]) -> (u32, u32) {
             max = *i;
         }
     }
-    return (min, max)
+    return (min, max);
 }
 
 #[test]
 fn part2() {
     let raw = include_str!("res/02.txt");
-    let input: Vec<Vec<u32>> = raw.lines()
-        .map(|line| line.split_ascii_whitespace().map(|t| t.parse().unwrap()).collect())
+    let input: Vec<Vec<u32>> = raw
+        .lines()
+        .map(|line| {
+            line.split_ascii_whitespace()
+                .map(|t| t.parse().unwrap())
+                .collect()
+        })
         .collect();
-    let ans: u32 = input.iter()
+    let ans: u32 = input
+        .iter()
         .map(|line| find_dividend_and_divisor(line))
         .map(|(dividend, divisor)| dividend / divisor)
         .sum();

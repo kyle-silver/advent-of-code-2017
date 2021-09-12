@@ -1,5 +1,11 @@
 fn twist<const N: usize>(pos: usize, length: usize, state: &mut [u32; N]) {
-    let to_swap: Vec<u32> = state.iter().cycle().skip(pos).take(length).cloned().collect();
+    let to_swap: Vec<u32> = state
+        .iter()
+        .cycle()
+        .skip(pos)
+        .take(length)
+        .cloned()
+        .collect();
     for (i, val) in to_swap.into_iter().rev().enumerate() {
         state[(pos + i) % N] = val
     }
@@ -7,7 +13,9 @@ fn twist<const N: usize>(pos: usize, length: usize, state: &mut [u32; N]) {
 
 #[test]
 fn part1() {
-    let input: Vec<usize> = vec![225,171,131,2,35,5,0,13,1,246,54,97,255,98,254,110];
+    let input: Vec<usize> = vec![
+        225, 171, 131, 2, 35, 5, 0, 13, 1, 246, 54, 97, 255, 98, 254, 110,
+    ];
     let mut state = [0u32; 256];
     for i in 0..256 {
         state[i] = i as u32;
@@ -22,7 +30,12 @@ fn part1() {
     assert_eq!(23874, ans);
 }
 
-fn knot_hash_round<const N: usize>(pos: &mut usize, skip: usize, state: &mut [u32; N], input: &[usize]) {
+fn knot_hash_round<const N: usize>(
+    pos: &mut usize,
+    skip: usize,
+    state: &mut [u32; N],
+    input: &[usize],
+) {
     for (base_skip, &length) in input.iter().enumerate() {
         twist(*pos, length, state);
         *pos = (*pos + length + base_skip + skip) % N;
@@ -56,7 +69,8 @@ fn part2() {
         knot_hash_round(&mut pos, skip, &mut state, &input);
         skip += input.len();
     }
-    let ans: String = state.chunks(16)
+    let ans: String = state
+        .chunks(16)
         .map(dense_hash)
         .map(|n| format!("{:02x}", n))
         .collect();

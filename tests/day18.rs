@@ -8,7 +8,7 @@ impl Arg {
     fn parse(token: &str) -> Arg {
         let first = token.chars().next().unwrap();
         if first.is_alphabetic() {
-            return Arg::Reg(first as u32 - 'a' as u32)
+            return Arg::Reg(first as u32 - 'a' as u32);
         }
         return Arg::Int(token.parse().unwrap());
     }
@@ -22,7 +22,7 @@ enum Op {
     Mul(usize, Arg),
     Mod(usize, Arg),
     Rcv(usize),
-    Jgz(Arg, Arg)
+    Jgz(Arg, Arg),
 }
 
 impl Op {
@@ -38,7 +38,7 @@ impl Op {
             "mod" => Mod(Op::_reg(tokens[1]), Arg::parse(tokens[2])),
             "rcv" => Rcv(Op::_reg(tokens[1])),
             "jgz" => Jgz(Arg::parse(tokens[1]), Arg::parse(tokens[2])),
-            _ => panic!("unrecognized op")
+            _ => panic!("unrecognized op"),
         }
     }
 
@@ -63,7 +63,7 @@ impl State {
                 Op::Snd(r) => {
                     self.freq = self.mem[*r];
                     pos += 1;
-                },
+                }
                 Op::Set(r, a) => {
                     self.mem[*r] = self.val(a);
                     pos += 1;
@@ -71,26 +71,26 @@ impl State {
                 Op::Add(r, a) => {
                     self.mem[*r] += self.val(a);
                     pos += 1;
-                },
+                }
                 Op::Mul(r, a) => {
                     self.mem[*r] *= self.val(a);
                     pos += 1;
-                },
+                }
                 Op::Mod(r, a) => {
                     self.mem[*r] %= self.val(a);
                     pos += 1;
                     println!("modulo result: {}", self.mem[*r])
-                },
+                }
                 Op::Rcv(r) => {
                     if self.mem[*r] != 0 {
                         self.recovered = self.freq;
                         // break;
                     }
                     pos += 1;
-                },
+                }
                 Op::Jgz(r, a) => {
                     pos += if self.val(r) > 0 { self.val(a) } else { 1 };
-                },
+                }
             };
             println!("{:?}", self);
         }
@@ -102,7 +102,7 @@ impl State {
             Arg::Reg(r) => self.mem[*r as usize],
         }
     }
- }
+}
 
 const INPUT: &str = include_str!("res/18.txt");
 

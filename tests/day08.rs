@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use derive_new::new;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 enum Op {
@@ -8,7 +8,7 @@ enum Op {
     Gt,
     Gte,
     Eq,
-    Neq
+    Neq,
 }
 
 impl Op {
@@ -39,7 +39,7 @@ impl Op {
 #[derive(Debug, new)]
 enum Arg<'a> {
     Num(i64),
-    Reg(&'a str)
+    Reg(&'a str),
 }
 
 impl Arg<'_> {
@@ -86,7 +86,7 @@ impl Cmd {
         match input {
             "inc" => Cmd::Inc,
             "dec" => Cmd::Dec,
-            _ => panic!()
+            _ => panic!(),
         }
     }
 }
@@ -124,7 +124,9 @@ struct Regs<'a> {
 
 impl<'a> Regs<'a> {
     fn new() -> Regs<'a> {
-        Regs { regs: HashMap::new() }
+        Regs {
+            regs: HashMap::new(),
+        }
     }
 
     fn get(&self, reg: &str) -> i64 {

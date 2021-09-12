@@ -36,7 +36,18 @@ fn methods_test() {
     r1.borrow_mut().update_next(r1.clone());
     r1.borrow_mut().insert_after(2);
     r1.borrow_mut().insert_after(3);
-    let two_after = r1.as_ref().borrow().get_next().unwrap().as_ref().borrow().get_next().unwrap().as_ref().borrow().val;
+    let two_after = r1
+        .as_ref()
+        .borrow()
+        .get_next()
+        .unwrap()
+        .as_ref()
+        .borrow()
+        .get_next()
+        .unwrap()
+        .as_ref()
+        .borrow()
+        .val;
     println!("Two from head: {}", two_after);
 }
 
@@ -94,7 +105,7 @@ fn part2() {
             next_to_zero = i;
             println!("{} -> next to zero: {} ", i, next_to_zero);
         }
-    } 
+    }
     println!("Day 17, part 2: {}", next_to_zero);
     assert_eq!(31220910, next_to_zero);
 }

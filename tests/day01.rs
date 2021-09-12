@@ -1,10 +1,18 @@
 #[test]
 fn part1() {
-    let input: Vec<_> = include_str!("res/01.txt").chars()
+    let input: Vec<_> = include_str!("res/01.txt")
+        .chars()
         .map(|c| c.to_digit(10).unwrap())
         .collect();
-    let partial_sum: u32 = input.windows(2)
-        .filter_map(|pair| if pair[0] == pair[1] { Some(pair[0]) } else { None })
+    let partial_sum: u32 = input
+        .windows(2)
+        .filter_map(|pair| {
+            if pair[0] == pair[1] {
+                Some(pair[0])
+            } else {
+                None
+            }
+        })
         .sum();
     let ans = if input.first().unwrap() == input.last().unwrap() {
         partial_sum + input[0]
@@ -17,12 +25,15 @@ fn part1() {
 
 #[test]
 fn part2() {
-    let input: Vec<u32> = include_str!("res/01.txt").chars()
+    let input: Vec<u32> = include_str!("res/01.txt")
+        .chars()
         .map(|c| c.to_digit(10).unwrap())
         .collect();
     let length = input.len();
     let step = length / 2;
-    let ans: u32 = input.iter().enumerate()
+    let ans: u32 = input
+        .iter()
+        .enumerate()
         .filter_map(|(index, digit)| {
             let sibling = (index + step) % length;
             if *digit == input[sibling] {

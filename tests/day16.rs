@@ -6,7 +6,7 @@ fn chars_to_usize(input: &[char]) -> usize {
 enum Action {
     Spin(usize),
     Exchange(usize, usize),
-    Partner(char, char)
+    Partner(char, char),
 }
 
 impl Action {
@@ -35,8 +35,11 @@ impl Action {
             's' => Action::Spin(chars_to_usize(args)),
             'x' => {
                 let (divider_index, _) = args.iter().enumerate().find(|(_, &x)| x == '/').unwrap();
-                Action::Exchange(chars_to_usize(&args[..divider_index]), chars_to_usize(&args[divider_index+1..]))
-            },
+                Action::Exchange(
+                    chars_to_usize(&args[..divider_index]),
+                    chars_to_usize(&args[divider_index + 1..]),
+                )
+            }
             'p' => Action::Partner(args[0], args[2]),
             _ => panic!(),
         }
@@ -46,7 +49,8 @@ impl Action {
 #[test]
 fn part1() {
     let raw = include_str!("res/16.txt");
-    let steps: Vec<Action> = raw.split(",")
+    let steps: Vec<Action> = raw
+        .split(",")
         .map(|s| s.chars().collect())
         .map(|chars: Vec<char>| Action::parse(&chars))
         .collect();
@@ -81,20 +85,20 @@ fn dance(mut state: Vec<char>, steps: &[Action]) -> Vec<char> {
         match action {
             Action::Spin(n) => {
                 let len = state.len();
-                state = state.into_iter().cycle().skip(len-n).take(len).collect();
-            },
+                state = state.into_iter().cycle().skip(len - n).take(len).collect();
+            }
             Action::Exchange(p1, p2) => {
                 let tmp = state[*p1];
                 state[*p1] = state[*p2];
                 state[*p2] = tmp;
-            },
+            }
             Action::Partner(c1, c2) => {
                 let (p1, _) = state.iter().enumerate().find(|(_, &c)| c == *c1).unwrap();
                 let (p2, _) = state.iter().enumerate().find(|(_, &c)| c == *c2).unwrap();
                 let tmp = state[p1];
                 state[p1] = state[p2];
                 state[p2] = tmp;
-            },
+            }
         };
     }
     state
@@ -103,12 +107,13 @@ fn dance(mut state: Vec<char>, steps: &[Action]) -> Vec<char> {
 #[test]
 fn part2() {
     let raw = include_str!("res/16.txt");
-    let steps: Vec<Action> = raw.split(",")
+    let steps: Vec<Action> = raw
+        .split(",")
         .map(|s| s.chars().collect())
         .map(|chars: Vec<char>| Action::parse(&chars))
         .collect();
     let mut state: Vec<char> = "cknmidebghlajpfo".chars().collect();
-    /* 
+    /*
     Running this code revealed the dance has a cycle length of 60.
     The closest multiple of 60 to 1,000,000,000 is 999,960 - meaning
     we only need to run the dance 40 times. (actually only 39 because we're
