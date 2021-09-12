@@ -1,11 +1,12 @@
 {
     "cSpell.words": [
         "Cond",
-        "Regs",
         "eval",
         "maxindex",
         "minmax",
         "nums",
-        "rcrefcell"
+        "rcrefcell",
+        "Regs",
+        "splitn"
     ]
 }

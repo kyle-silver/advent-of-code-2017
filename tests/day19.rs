@@ -110,7 +110,4 @@ fn part1() {
     let ans = String::from_iter(stack.iter());
     println!("Day 19, part 1: {}", ans);
     println!("Day 19, part 2: {}", steps);
-    // let mut pos = (start, 0);
-    // let mut dir = Direction::Down;
-    
 }

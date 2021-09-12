@@ -106,10 +106,10 @@ impl State {
 
 const INPUT: &str = include_str!("res/18.txt");
 
-#[test]
-fn part1() {
-    let ops: Vec<_> = INPUT.lines().map(Op::parse).collect();
-    let mut state = State::default();
-    state.execute(&ops);
-    println!("{}", state.recovered)
-}
+// #[test]
+// fn part1() {
+//     let ops: Vec<_> = INPUT.lines().map(Op::parse).collect();
+//     let mut state = State::default();
+//     state.execute(&ops);
+//     println!("{}", state.recovered)
+// }
