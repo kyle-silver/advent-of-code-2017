@@ -1,76 +1,135 @@
-use std::collections::{HashMap, HashSet};
+const INPUT: &str = include_str!("res/13.txt");
 
-const RAW: &str = include_str!("res/13.txt");
-
-#[derive(Debug)]
-enum ScanDirection {
+#[derive(Debug, Clone)]
+enum Direction {
     Out,
     Back,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Scanner {
-    range: u32,
-    current_position: u32,
-    scan_direction: ScanDirection,
+    range: usize,
+    position: usize,
+    direction: Direction,
 }
 
 impl Scanner {
-    fn new(range: u32) -> Scanner {
+    fn new(range: usize) -> Scanner {
         Scanner {
             range,
-            current_position: 0,
-            scan_direction: ScanDirection::Out,
+            position: 0,
+            direction: Direction::Out,
         }
     }
 
-    fn step(&mut self) {
-        if self.current_position == 0 {
-            self.current_position += 1;
-            self.scan_direction = ScanDirection::Out;
-        } else if self.current_position == self.range - 1 {
-            self.current_position -= 1;
-            self.scan_direction = ScanDirection::Back;
-        } else {
-            match self.scan_direction {
-                ScanDirection::Out => self.current_position += 1,
-                ScanDirection::Back => self.current_position -= 1,
-            };
+    fn update(&mut self) {
+        if matches!(self.direction, Direction::Out) && self.position == self.range - 1 {
+            self.direction = Direction::Back;
+        } else if matches!(self.direction, Direction::Back) && self.position == 0 {
+            self.direction = Direction::Out;
+        }
+        match self.direction {
+            Direction::Out => self.position += 1,
+            Direction::Back => self.position -= 1,
         }
     }
 
-    fn collision(&self) -> bool {
-        self.current_position == 0
+    fn alert(&self) -> bool {
+        // self.position == 0 && matches!(self.direction, Direction::Out)
+        self.position == 0
     }
 }
 
 #[derive(Debug)]
-struct Firewall(HashMap<u32, Scanner>);
+struct Firewall {
+    // path: HashMap<usize, Scanner>,
+    path: Vec<Option<Scanner>>,
+}
 
 impl Firewall {
-    fn parse(input: &str) -> Firewall {
-        let state = input
-            .lines()
+    fn parse<'a>(lines: impl Iterator<Item = &'a str>) -> Firewall {
+        let scanners: Vec<_> = lines
             .map(|line| {
-                let (pos, depth) = line.split_once(": ").unwrap();
-                (pos.parse().unwrap(), Scanner::new(depth.parse().unwrap()))
+                let (depth, range) = line.split_once(": ").unwrap();
+                let depth: usize = depth.parse().unwrap();
+                let range = range.parse().unwrap();
+                (depth, Scanner::new(range))
             })
             .collect();
-        Firewall(state)
+        let capacity = scanners.iter().map(|(index, _)| *index).max().unwrap_or(0);
+        let mut path = vec![None; capacity + 1];
+        for (index, scanner) in scanners {
+            path[index] = Some(scanner);
+        }
+        Firewall { path }
     }
 
-    fn step(&mut self) {
-        self.0.iter_mut().for_each(|(_, v)| v.step());
+    fn update(&mut self) {
+        self.path
+            .iter_mut()
+            .filter_map(|s| s.as_mut())
+            .for_each(|s| s.update())
     }
 
-    fn collision(&self, pos: u32) -> bool {
-        self.0.get(&pos).map(|s| s.collision()).unwrap_or(false)
+    fn size(&self) -> usize {
+        self.path.len()
     }
 
-    fn passed(&self, state: &HashSet<u32>) -> bool {
-        state.iter().max().unwrap_or(&0) > self.0.keys().max().unwrap()
+    fn score(&self, depth: usize) -> u32 {
+        if let Some(Some(scanner)) = self.path.get(depth) {
+            if scanner.alert() {
+                return (depth * scanner.range) as u32;
+            }
+        }
+        return 0;
     }
 }
 
 #[test]
-fn part1() {}
+fn part1() {
+    let mut firewall = Firewall::parse(INPUT.lines());
+    let mut severity = 0;
+    for position in 0..=firewall.size() {
+        severity += firewall.score(position);
+        firewall.update();
+    }
+    println!("Day 13, part 1: {}", severity);
+}
+
+#[derive(Debug)]
+struct Attempt {
+    current_depth: usize,
+    score: u32,
+}
+
+impl Attempt {
+    fn new() -> Attempt {
+        Attempt {
+            current_depth: 0,
+            score: 0,
+        }
+    }
+}
+
+#[test]
+fn part2() {
+    let mut firewall = Firewall::parse(INPUT.lines());
+    let mut attempts: Vec<Attempt> = vec![Attempt::new()];
+    let size = firewall.size();
+    (0..10).for_each(|_| firewall.update());
+    while !attempts
+        .iter()
+        .any(|a| a.current_depth > firewall.size() && a.score == 0)
+    {
+        for attempt in attempts.iter_mut().rev().take(size + 1) {
+            attempt.score += firewall.score(attempt.current_depth);
+            attempt.current_depth += 1;
+        }
+        attempts.push(Attempt::new());
+        firewall.update();
+        println!("{}", attempts.len());
+    }
+    for (index, attempt) in attempts.iter().enumerate() {
+        println!("{}: {:?}", index + 10, attempt);
+    }
+}

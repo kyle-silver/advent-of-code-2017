@@ -45,11 +45,6 @@ impl<const N: usize> Pattern<N> {
         self.0 |= 1 << bit_position
     }
 
-    fn unset(&mut self, i: usize, j: usize) {
-        let bit_position = (i * N) + j;
-        self.0 &= u32::MAX - (1 << bit_position)
-    }
-
     fn rotated(&self) -> Pattern<N> {
         let mut pattern = Pattern(0);
         for i in 0..N {
