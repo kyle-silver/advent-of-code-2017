@@ -1,93 +1,101 @@
-use std::collections::HashMap;
-
 const INPUT: &str = include_str!("res/21.txt");
 
-#[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
-enum Cell {
-    On,
-    Off,
-}
+type Cell = bool;
 
-impl Cell {
-    fn parse(c: char) -> Cell {
-        match c {
-            '.' => Cell::Off,
-            _ => Cell::On,
-        }
-    }
-
-    fn on(&self) -> bool {
-        match self {
-            Cell::On => true,
-            Cell::Off => false,
-        }
-    }
-}
-
-#[derive(Debug, Hash, Clone, PartialEq, Eq)]
-struct Pattern<const N: usize> {
-    grid: [[Cell; N]; N],
-}
+/// Just an absolutely freaky implementation for the fun of it.
+/// Why not use bit masks and pre-sorted arrays for hyper efficiency?
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+struct Pattern<const N: usize>(u32);
 
 impl<const N: usize> Pattern<N> {
-    fn parse(input: &str) -> Pattern<N> {
-        let mut grid = [[Cell::Off; N]; N];
-        for (i, c) in input.chars().filter(|c| *c != '/').enumerate() {
-            grid[i % N][i / N] = Cell::parse(c);
+    fn parse(token: &str) -> Pattern<N> {
+        let mut pattern = 0;
+        for (i, c) in token.chars().filter(|c| *c != '/').enumerate() {
+            if c == '#' {
+                pattern += 1 << i;
+            }
         }
-        Pattern { grid }
+        Pattern(pattern)
+    }
+
+    fn from_segment(segment: &[&[Cell]]) -> Pattern<N> {
+        let mut pattern = Pattern(0);
+        for (i, &row) in segment.iter().enumerate() {
+            for (j, &cell) in row.iter().enumerate() {
+                if cell {
+                    pattern.set(i, j);
+                }
+            }
+        }
+        pattern
+    }
+
+    fn get(&self, i: usize, j: usize) -> bool {
+        let bit_position = (i * N) + j;
+        self.0 & (1 << bit_position) != 0
+    }
+
+    fn set(&mut self, i: usize, j: usize) {
+        let bit_position = (i * N) + j;
+        self.0 |= 1 << bit_position
+    }
+
+    fn unset(&mut self, i: usize, j: usize) {
+        let bit_position = (i * N) + j;
+        self.0 &= u32::MAX - (1 << bit_position)
     }
 
     fn rotated(&self) -> Pattern<N> {
-        let mut grid = [[Cell::Off; N]; N];
-        for (i, row) in self.grid.iter().enumerate() {
-            for (j, cell) in row.iter().enumerate() {
-                grid[N - j - 1][i] = *cell;
+        let mut pattern = Pattern(0);
+        for i in 0..N {
+            for j in 0..N {
+                if self.get(i, j) {
+                    pattern.set(N - j - 1, i);
+                }
             }
         }
-        Pattern { grid }
+        pattern
     }
 
     fn mirrored(&self) -> Pattern<N> {
-        let mut grid = [[Cell::Off; N]; N];
-        for (i, row) in self.grid.iter().enumerate() {
-            for (j, cell) in row.iter().enumerate() {
-                grid[i][N - j - 1] = *cell;
+        let mut pattern = Pattern(0);
+        for i in 0..N {
+            for j in 0..N {
+                if self.get(i, j) {
+                    pattern.set(i, N - j - 1);
+                }
             }
         }
-        Pattern { grid }
+        pattern
     }
 }
 
 #[derive(Debug)]
-struct Replication<const N: usize, const M: usize> {
-    rules: HashMap<Pattern<N>, Pattern<M>>,
-}
+struct Replication<const N: usize, const M: usize>(Vec<(Pattern<N>, Pattern<M>)>);
 
 impl<const N: usize, const M: usize> Replication<N, M> {
     fn parse<'a>(lines: impl Iterator<Item = &'a str>) -> Replication<N, M> {
-        let mut rules = HashMap::new();
+        let mut rules = Vec::new();
         for line in lines {
             let (seed, transform) = line.split_once(" => ").unwrap();
             let mut seed = Pattern::<N>::parse(seed);
             let transform = Pattern::<M>::parse(transform);
             for _ in 0..4 {
-                rules.insert(seed.clone(), transform.clone());
-                rules.insert(seed.mirrored(), transform.clone());
+                rules.push((seed, transform));
+                rules.push((seed.mirrored(), transform));
                 seed = seed.rotated();
             }
         }
-        Replication { rules }
+        rules.sort_by(|a, b| a.0.cmp(&b.0));
+        Replication(rules)
     }
 
-    fn rule(&self, input: &[&[Cell]]) -> &Pattern<M> {
-        let mut grid = [[Cell::Off; N]; N];
-        for (i, row) in input.iter().enumerate() {
-            for (j, cell) in row.iter().enumerate() {
-                grid[i][j] = *cell;
-            }
-        }
-        self.rules.get(&Pattern { grid }).unwrap()
+    fn rule(&self, segment: &[&[Cell]]) -> Pattern<M> {
+        let rules = &self.0;
+        let index = rules
+            .binary_search_by_key(&Pattern::from_segment(segment), |&(a, _)| a)
+            .unwrap();
+        rules[index].1
     }
 }
 
@@ -124,7 +132,7 @@ impl Grid {
     fn replicate<const N: usize, const M: usize>(&self, replication: &Replication<N, M>) -> Grid {
         let size = self.grid.len();
         let segments = size / N;
-        let mut grid = vec![vec![Cell::Off; segments * M]; segments * M];
+        let mut grid = vec![vec![false; segments * M]; segments * M];
         for i in 0..segments {
             for j in 0..segments {
                 let (ri, ci) = (i * N, j * N); // row index, col index
@@ -135,7 +143,8 @@ impl Grid {
                 let pattern = replication.rule(&segment);
                 for r in 0..M {
                     for c in 0..M {
-                        grid[r + (i * M)][c + (j * M)] = pattern.grid[r][c];
+                        // grid[r + (i * M)][c + (j * M)] = pattern.grid[r][c];
+                        grid[r + (i * M)][c + (j * M)] = pattern.get(r, c);
                     }
                 }
             }
@@ -146,17 +155,32 @@ impl Grid {
     fn on(&self) -> u32 {
         self.grid
             .iter()
-            .map(|row| row.iter().filter(|c| c.on()).count() as u32)
+            .map(|row| row.iter().filter(|c| **c).count() as u32)
             .sum()
     }
 }
 
 #[test]
+fn bit_shift() {
+    let p = Pattern::<3>::parse(".../###/..#");
+    println!("{:#b}", p.0);
+    println!("{}", p.get(0, 2));
+    println!("{}", p.get(1, 2));
+    println!("{}", p.get(2, 2));
+    let mut p = Pattern::<3>::parse(".../.../...");
+    p.set(1, 1);
+    p.set(2, 2);
+    println!("{:#b}", p.0);
+    let p1 = p.rotated();
+    println!("{:#b}", p1.0);
+}
+
+#[test]
 fn part1() {
     let input = vec![
-        vec![Cell::Off, Cell::On, Cell::Off],
-        vec![Cell::Off, Cell::Off, Cell::On],
-        vec![Cell::On, Cell::On, Cell::On],
+        vec![false, true, false],
+        vec![false, false, true],
+        vec![true, true, true],
     ];
     let patterns = Patterns::parse(INPUT);
     let mut grid = Grid { grid: input };
@@ -169,15 +193,15 @@ fn part1() {
 #[test]
 fn part2() {
     let input = vec![
-        vec![Cell::Off, Cell::On, Cell::Off],
-        vec![Cell::Off, Cell::Off, Cell::On],
-        vec![Cell::On, Cell::On, Cell::On],
+        vec![false, true, false],
+        vec![false, false, true],
+        vec![true, true, true],
     ];
     let patterns = Patterns::parse(INPUT);
     let mut grid = Grid { grid: input };
-    for i in 0..18 {
+    for _ in 0..18 {
         grid = grid.grow(&patterns);
-        println!("iteration {}: {}", i, grid.on());
     }
     println!("Day 21, part 2: {}", grid.on());
+    assert_eq!(2169301, grid.on())
 }

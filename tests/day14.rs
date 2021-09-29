@@ -1,4 +1,4 @@
-use std::{collections::HashMap, convert::TryInto};
+use std::convert::TryInto;
 
 fn twist<const N: usize>(pos: usize, length: usize, state: &mut [u8; N]) {
     let to_swap: Vec<u8> = state
@@ -55,17 +55,13 @@ fn test() {
 
 #[test]
 fn part1() {
+    // spell-checker: disable
     let seed = "stpzcrnm";
     let extra = vec![17, 31, 73, 47, 23];
     let hashes: u32 = (0..128)
         .map(|i| format!("{}-{}", seed, i))
-        .map(|s| {
-            s.as_str()
-                .bytes()
-                .map(|b| b as usize)
-                .collect::<Vec<usize>>()
-        })
-        .map(|mut input| {
+        .map(|s| s.as_str().bytes().map(|b| b as usize).collect())
+        .map(|mut input: Vec<_>| {
             input.append(&mut extra.clone());
             input
         })
@@ -76,49 +72,60 @@ fn part1() {
     assert_eq!(8250, hashes);
 }
 
-fn bits_as_arr(input: u128) -> [bool; 128] {
-    let mut arr = [false; 128];
-    for (n, i) in arr.iter_mut().enumerate() {
-        if input & (1 << n) != 0 {
-            *i = true;
-        }
-    }
-    arr
-}
-
-#[derive(Debug)]
-enum MapEntry {
+#[derive(Debug, Clone, Copy)]
+enum Point {
     Empty,
     Unset,
-    Value(u32),
+    Region(u32),
+}
+
+fn flood_fill<const N: usize>(grid: &mut [[Point; N]], region: u32, i: usize, j: usize) {
+    if let Point::Unset = grid[i][j] {
+        grid[i][j] = Point::Region(region);
+    }
+    for (di, dj) in [(-1, 0), (0, -1), (1, 0), (0, 1)] {
+        let r = (i as isize + di) as usize;
+        let c = (j as isize + dj) as usize;
+        if let Some(Point::Unset) = grid.get(r).and_then(|g| g.get(c)) {
+            flood_fill(grid, region, r, c)
+        }
+    }
 }
 
 #[test]
 fn part2() {
+    // spell-checker: disable
     let seed = "stpzcrnm";
     let extra = vec![17, 31, 73, 47, 23];
+    // create data
     let data: Vec<u128> = (0..128)
         .map(|i| format!("{}-{}", seed, i))
-        .map(|s| {
-            s.as_str()
-                .bytes()
-                .map(|b| b as usize)
-                .collect::<Vec<usize>>()
-        })
-        .map(|mut input| {
+        .map(|s| s.as_str().bytes().map(|b| b as usize).collect())
+        .map(|mut input: Vec<_>| {
             input.append(&mut extra.clone());
             input
         })
         .map(|input| knot_hash(&input))
         .collect();
-    let mut map: HashMap<(usize, usize), MapEntry> = HashMap::new();
+    // populate grid
+    let mut grid = [[Point::Empty; 128]; 128];
     for (i, d) in data.iter().enumerate() {
         for j in 0..128 {
             if d & (1 << j) != 0 {
-                map.insert((i, j), MapEntry::Unset);
-            } else {
-                map.insert((i, j), MapEntry::Empty);
+                grid[i][j] = Point::Unset;
             }
         }
     }
+    let mut region = 0;
+    // define regions
+    for i in 0..128 {
+        for j in 0..128 {
+            if let Point::Unset = grid[i][j] {
+                flood_fill(&mut grid, region, i, j);
+                region += 1;
+            }
+        }
+    }
+    println!("Day 14, part 2: {}", region);
+    assert_eq!(1113, region)
 }
