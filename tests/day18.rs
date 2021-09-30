@@ -162,24 +162,19 @@ impl Comp<'_> {
 
     fn step(&mut self) {
         if self.waiting && self.rcv.borrow().is_empty() {
-            println!("{}: Waiting (snd count {})", self.id, self.snd_count);
             return;
         }
         match self.program[self.pos] {
             Op::Snd(r) => {
-                self.snd.borrow_mut().push_back(self.regs[r]);
+                self.snd.borrow_mut().push_front(self.regs[r]);
                 self.snd_count += 1;
             }
-            Op::Rcv(r) => match self.rcv.borrow_mut().pop_front() {
+            Op::Rcv(r) => match self.rcv.borrow_mut().pop_back() {
                 Some(val) => {
                     self.regs[r] = val;
-                    if self.waiting {
-                        println!("{}: Data received! No longer waiting", self.id);
-                    }
                     self.waiting = false;
                 }
                 None => {
-                    println!("{}: No data! Waiting", self.id);
                     self.waiting = true;
                     return;
                 }
@@ -223,26 +218,20 @@ fn part1() {
     let ans = i.iter().next().unwrap();
 
     println!("Day 18, part 1: {}", ans);
-    // assert_eq!(8600, *ans);
+    assert_eq!(8600, *ans);
 }
 
-// #[test]
-// fn part2() {
-//     let lines = INPUT.lines();
-//     let program: Vec<_> = lines.map(Op::parse).collect();
-//     let q1 = Rc::new(RefCell::new(VecDeque::new()));
-//     let q2 = Rc::new(RefCell::new(VecDeque::new()));
-//     let mut comp1 = Comp::new(&program, 0, q1.clone(), q2.clone());
-//     let mut comp2 = Comp::new(&program, 1, q2.clone(), q1.clone());
-//     let mut i: u64 = 0;
-//     while !(comp1.waiting && comp2.waiting) {
-//         if i % 10_000_000 == 0 {
-//             println!("i: {}", i);
-//             println!("{:?}, {:?}", q1, q2);
-//         }
-//         comp1.step();
-//         comp2.step();
-//         i += 1;
-//     }
-//     println!("Day 18, part 2: {}", comp1.snd_count);
-// }
+#[test]
+fn part2() {
+    let lines = INPUT.lines();
+    let program: Vec<_> = lines.map(Op::parse).collect();
+    let q1 = Rc::new(RefCell::new(VecDeque::new()));
+    let q2 = Rc::new(RefCell::new(VecDeque::new()));
+    let mut comp1 = Comp::new(&program, 0, q1.clone(), q2.clone());
+    let mut comp2 = Comp::new(&program, 1, q2.clone(), q1.clone());
+    while !(comp1.waiting && comp2.waiting) {
+        comp1.step();
+        comp2.step();
+    }
+    println!("Day 18, part 2: {}", comp2.snd_count);
+}
