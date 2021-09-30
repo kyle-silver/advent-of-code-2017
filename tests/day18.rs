@@ -234,4 +234,5 @@ fn part2() {
         comp2.step();
     }
     println!("Day 18, part 2: {}", comp2.snd_count);
+    assert_eq!(7239, comp2.snd_count);
 }
